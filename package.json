@@ -4,8 +4,8 @@
   "description": "An api for the showman-api",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js",
+    "start": "node ./dist/index.js",
+    "build": "babel ./src -d dist --copy-files",
     "dev": "nodemon --exec babel-node src/index.js",
     "server": "nodemon server.js babel-node -- src/index.js"
   },
@@ -38,5 +38,8 @@
     "passport": "^0.4.1",
     "validator": "^12.2.0",
     "dotenv": "^8.2.0"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.12.1"
   }
 }
