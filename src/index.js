@@ -3,7 +3,8 @@ const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const chalk = require('chalk')
 const mongoose = require('mongoose')
-const users = require('./routes/api/users')
+const users = require('./api/v1/auth')
+const tracks = require('./api/v1/tracks')
 import emailVerify from './routes/endpoints/users'
 
 const app = express()
@@ -48,6 +49,7 @@ mongoose.connection.on('error', (err) => {
 
 app.use('/api/v1/users', users)
 app.use('/verify-email', emailVerify)
+app.use('/api/v1/tracks', tracks)
 app.use('/', (req, res) => {
     return res.send('<center><p>Welcome to <b>Shoman Mentorship Platform.</b></p><br />You can access endpoints on <i>https://shoman.herokuapp.com/api/v1/...</i> e.g. <u>https://shoman.herokuapp.com/api/v1/users/all</u></center>')
 })
