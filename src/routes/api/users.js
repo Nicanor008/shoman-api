@@ -15,6 +15,7 @@ import { jwtVerify } from "../../validations/jwtService";
 router.post("/register", (req, res) => {
   const domain = req.protocol + "://" + req.get("host");
   req.body.domain = domain;
+  console.log("domain",domain,req.body)
   const { errors, isValid } = validateRegisterInput(req.body);
   if (!isValid) {
     return res.status(400).json(errors);
