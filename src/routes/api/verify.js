@@ -1,5 +1,5 @@
 import { jwtVerify } from "../../validations/jwtService";
-import User from "../../models/users";
+import User from "../../api/v1/users/users_model";
 
 export async function userExists(token) {
   let email = jwtVerify(token);
