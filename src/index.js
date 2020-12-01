@@ -3,8 +3,8 @@ const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const chalk = require('chalk')
 const mongoose = require('mongoose')
-const users = require('./routes/api/users')
-import emailVerify from './routes/endpoints/users'
+
+import route from './routes'
 
 const app = express()
 const DB = require('./config/keys').mongoUri
@@ -46,13 +46,15 @@ mongoose.connection.on('error', (err) => {
     setTimeout(connectWithRetry, 5000)
 })
 
-app.use('/api/v1/users', users)
-app.use('/verify-email', emailVerify)
-app.use('/', (req, res) => {
-    return res.send('<p>Welcome to <b>Shoman Mentorship Platform.</b></p>')
+route(app)
+
+app.use((req, res, next) => {
+    const error = new Error('Please use /api/v1/<specific resource> to acess the API');
+    error.status = 404;
+    next(error);
 })
 
 const port = process.env.PORT || 4000
 app.listen(port, () =>
-    console.log(chalk.magenta(`server running on port ${port}`))
+    console.log(chalk.magenta(`🚀 server running on http://127.0.0.1:${port}`))
 )

@@ -1,8 +1,8 @@
 import express from "express";
 import { Verify } from "../../utils/user";
 
-const api = express.Router();
+const router = express.Router();
 
-api.post("/", Verify);
+router.post("/verify-email", Verify);
 
-export default api;
+export default router;

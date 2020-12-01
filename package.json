@@ -4,10 +4,10 @@
   "description": "An api for the showman-api",
   "main": "index.js",
   "scripts": {
-    "start": "node ./dist/index.js",
-    "build": "babel ./src -d dist --copy-files",
     "dev": "nodemon --exec babel-node src/index.js",
-    "server": "nodemon server.js babel-node -- src/index.js"
+    "start": "babel-node src/index.js",
+    "build": "babel src --out-dir dist",
+    "serve": "node dist/server.js"
   },
   "repository": {
     "type": "git",
@@ -28,8 +28,10 @@
     "body-parser": "^1.19.0",
     "chalk": "^3.0.0",
     "dotenv": "^8.2.0",
+    "ejs": "^3.1.5",
     "express": "^4.17.1",
     "googleapis": "^65.0.0",
+    "html-minifier": "^4.0.0",
     "is-empty": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.10.17",
@@ -41,6 +43,14 @@
     "validator": "^12.2.0"
   },
   "devDependencies": {
-    "@babel/plugin-transform-runtime": "^7.12.1"
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "husky": "^4.3.0",
+    "prettier": "^2.2.1",
+    "pretty-quick": "^3.1.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
   }
 }
