@@ -1,5 +1,6 @@
 import { body, check } from 'express-validator'
-import { Application, Track } from '../models/'
+import Application from './application_model'
+import Tracks from '../tracks/track_model'
 
 const menteeApplyRules = () => {
     return [
@@ -25,7 +26,7 @@ const menteeApplyRules = () => {
             .notEmpty()
             .withMessage('Learning track is required')
             .custom(async (value, {}) => {
-                const track = await Track.findOne({ track: value })
+                const track = await Tracks.findOne({ name: value })
                 if (!track) {
                     return Promise.reject('Learning Track name does not exist')
                 }

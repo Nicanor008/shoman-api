@@ -1,7 +1,7 @@
 import { validationResult } from 'express-validator'
 import { CustomError } from '../utils/customError'
 
-export const validationMW = (req, res, next) => {
+export const validate = (req, res, next) => {
     const errors = validationResult(req)
     if (errors.isEmpty()) {
         return next()

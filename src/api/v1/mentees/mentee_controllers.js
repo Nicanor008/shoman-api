@@ -1,7 +1,8 @@
-import { Application, Track } from '../models/'
-import { InternalServerError, CustomError } from '../utils/customError'
-import responseHandler from '../utils/responseHandler'
-import sendReviewMail from '../googleservices/apply'
+import Application from './application_model'
+import Tracks from '../tracks/track_model'
+import { InternalServerError, CustomError } from '../../../utils/customError'
+import responseHandler from '../../../utils/responseHandler'
+import sendReviewMail from '../../../googleservices/apply'
 
 export async function applyForMentorship(req, res, next) {
     try {
@@ -30,21 +31,6 @@ export async function applyForMentorship(req, res, next) {
             goal,
             previous_experience,
         }).save()
-        const addedTrack = await Track.findOneAndUpdate(
-            { name: track },
-            {
-                $push: { applications: application._id },
-            },
-            { new: true }
-        )
-        if (!addedTrack) {
-            return next(
-                new CustomError(
-                    400,
-                    'Error occurred. Unable to update Track with the new application'
-                )
-            )
-        }
         sendReviewMail({
             toMail: email,
             subject: 'Shoman Mentorship Application',
