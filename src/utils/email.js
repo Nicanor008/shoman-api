@@ -6,6 +6,8 @@ import { createTransport } from 'nodemailer'
 import { minify } from 'html-minifier'
 const { google } = require('googleapis')
 
+require('dotenv').config()
+
 const rootPath = path.join(__dirname, '..', '..', 'templates/')
 
 const templates = {

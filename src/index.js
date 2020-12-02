@@ -5,6 +5,7 @@ const chalk = require('chalk')
 const mongoose = require('mongoose')
 
 import route from './routes'
+import errorHandler from './utils/errorHandler'
 
 const app = express()
 const DB = require('./config/keys').mongoUri
@@ -12,7 +13,7 @@ const DB = require('./config/keys').mongoUri
 app.use(
     bodyParser.urlencoded({
         extended: false,
-    })
+    }),
 )
 
 app.use(bodyParser.json())
@@ -26,10 +27,8 @@ mongoose
         useUnifiedTopology: true,
         autoIndex: false,
     })
-    .then(() =>
-        console.log(chalk.greenBright('connection to the database successful'))
-    )
-    .catch((err) => console.log(err))
+    .then(() => console.log(chalk.greenBright('connection to the database successful')))
+    .catch(err => console.log(err))
 
 const connectWithRetry = () => {
     console.log('MongoDB connection with retry')
@@ -41,7 +40,7 @@ const connectWithRetry = () => {
     })
 }
 
-mongoose.connection.on('error', (err) => {
+mongoose.connection.on('error', err => {
     console.log(`MongoDB connection error: ${err}`)
     setTimeout(connectWithRetry, 5000)
 })
@@ -49,12 +48,16 @@ mongoose.connection.on('error', (err) => {
 route(app)
 
 app.use((req, res, next) => {
-    const error = new Error('Please use /api/v1/<specific resource> to acess the API');
-    error.status = 404;
-    next(error);
+    const error = new Error('Please use /api/v1/<specific resource> to acess the API')
+    error.status = 404
+    next(error)
+})
+
+// default error handler
+app.use((err, req, res, next) => {
+    console.error(`${err.status || 500} - ${req.method} - ${err.message}  - ${req.originalUrl} - ${req.ip}`)
+    errorHandler(err, req, res, next)
 })
 
 const port = process.env.PORT || 4000
-app.listen(port, () =>
-    console.log(chalk.magenta(`🚀 server running on http://127.0.0.1:${port}`))
-)
+app.listen(port, () => console.log(chalk.magenta(`🚀 server running on http://127.0.0.1:${port}`)))
