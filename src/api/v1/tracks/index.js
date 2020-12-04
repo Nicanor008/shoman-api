@@ -1,11 +1,9 @@
-const express = require("express");
-import { CreateTrackController, GetTrackController } from "./track_controllers";
+const express = require('express')
+import { CreateTrackController, GetTrackController } from './track_controllers'
 
 const router = express.Router()
 
-router
-  .route("/")
-  .post(CreateTrackController)
-  .get(GetTrackController);
+router.post('/tracks', CreateTrackController)
+router.get('/tracks', GetTrackController)
 
-module.exports = router;
+export default router

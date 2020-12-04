@@ -8,15 +8,7 @@ export const validate = (req, res, next) => {
     }
 
     const errorsArray = []
-    errors
-        .array()
-        .map((error) => errorsArray.push({ [error.param]: error.msg }))
+    errors.array().map(error => errorsArray.push({ [error.param]: error.msg }))
 
-    return next(
-        new CustomError(
-            422,
-            'Validation error(s): Check the following fields',
-            errorsArray
-        )
-    )
+    return next(new CustomError(422, 'Validation error(s): Check the following fields', errorsArray))
 }

@@ -4,10 +4,7 @@ import Tracks from '../tracks/track_model'
 
 const menteeApplyRules = () => {
     return [
-        body('firstname')
-            .notEmpty()
-            .withMessage('First name is required')
-            .trim(),
+        body('firstname').notEmpty().withMessage('First name is required').trim(),
         body('lastname').notEmpty().withMessage('Last name is required').trim(),
         body('email')
             .notEmpty()
@@ -32,12 +29,8 @@ const menteeApplyRules = () => {
                 }
                 return true
             }),
-        body('goal')
-            .notEmpty()
-            .withMessage('Goals of taking this mentorship is required'),
-        body('previous_experience')
-            .notEmpty()
-            .withMessage('Details about previous experience is required'),
+        body('goal').notEmpty().withMessage('Goals of taking this mentorship is required'),
+        body('previous_experience').notEmpty().withMessage('Details about previous experience is required'),
     ]
 }
 

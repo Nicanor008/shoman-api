@@ -1,7 +1,7 @@
 import { Schema as _Schema, model } from 'mongoose'
 const Schema = _Schema
 
-// e.g. 
+// e.g.
 // name - Frontend Development
 // languages - ["HTML", "CSS", "JavaScript"]
 // application_areas - ["Web Development", "Web Design"]

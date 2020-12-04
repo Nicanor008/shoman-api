@@ -9,20 +9,20 @@ export const CreateTrackController = (req, res) => {
     if (!isValid) {
         return res.status(400).json(errors)
     }
-    Tracks.findOne({ name: req.body.name }).then((user) => {
+    Tracks.findOne({ name: req.body.name }).then(user => {
         if (user) {
             return res.status(409).json({ name: 'Track already exists' })
         } else {
             const newUser = new Tracks(req.body)
             newUser
                 .save()
-                .then((track) => {
+                .then(track => {
                     return res.status(200).json({
                         message: 'Track successfully created',
                         track,
                     })
                 })
-                .catch((error) => {
+                .catch(error => {
                     return res.status(500).json({
                         status: 'error',
                         message: 'Something went wrong. Try again',
@@ -49,7 +49,7 @@ export const GetTrackController = (req, res, next) => {
             message: 'All Tracks',
             tracks,
         })
-    }).catch((error) => {
+    }).catch(error => {
         return res.status(500).json({
             status: 'error',
             message: 'Something went wrong. Try again',

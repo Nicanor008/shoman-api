@@ -8,11 +8,6 @@ const router = Router()
 /**
  * mentorship application for mentee
  */
-router.post(
-    '/apply',
-    validations.menteeApplyRules(),
-    validate,
-    applyForMentorship
-)
+router.post('/mentees/apply', validations.menteeApplyRules(), validate, applyForMentorship)
 
 export default router

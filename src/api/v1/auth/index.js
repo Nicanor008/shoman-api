@@ -5,12 +5,12 @@ const { RegisterUser, Login, GetAllUsers, ForgotPassword, ResetPassword } = requ
 const router = express.Router()
 
 // auth
-router.route('/register').post(RegisterUser)
-router.route('/login').post(Login)
-router.route('/forgot-password').post(ForgotPassword)
-router.route('/reset-password').post(ResetPassword)
+router.post('/users/register', RegisterUser)
+router.post('/users/login', Login)
+router.post('/users/forgot-password', ForgotPassword)
+router.put('/users/reset-password', ResetPassword)
 
 // users
-router.route('/').post(passport.authenticate("jwt", { session: false }), GetAllUsers)
+router.get('/users/all', passport.authenticate('jwt', { session: false }), GetAllUsers)
 
-module.exports = router
+export default router

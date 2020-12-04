@@ -4,10 +4,8 @@ const keys = require('../../../config/keys')
 const validateRegisterInput = require('../../../validations/register')
 const validateLoginInput = require('../../../validations/login')
 const User = require('../users/users_model')
-import { sendMail as resetPassword } from '../../../googleservices/reset'
-import { sendMail as verifyEmail } from '../../../googleservices/email'
-import { sendMail as successMail } from '../../../googleservices/success'
-import { jwtVerify } from '../../../validations/jwtService'
+import { sendEmail, compileEjs } from '../../../utils/email'
+import { jwtVerify, jwtSignature } from '../../../validations/jwtService'
 
 export const RegisterUser = (req, res) => {
     const domain = req.protocol + '://' + req.get('host')
@@ -16,7 +14,7 @@ export const RegisterUser = (req, res) => {
     if (!isValid) {
         return res.status(400).json(errors)
     }
-    User.findOne({ email: req.body.email }).then((user) => {
+    User.findOne({ email: req.body.email }).then(user => {
         if (user) {
             return res.status(400).json({ email: 'Email already exists' })
         } else {
@@ -31,28 +29,32 @@ export const RegisterUser = (req, res) => {
                     newUser.password = hash
                     newUser
                         .save()
-                        .then((user) =>
+                        .then(user =>
                             res.json({
-                                message:
-                                    'Account created successfuly check your email to verify your email address',
+                                message: 'Account created successfuly check your email to verify your email address',
                                 user,
-                            })
+                            }),
                         )
-                        .catch((err) => console.log(err))
+                        .catch(err => console.log(err))
                 })
             })
-            verifyEmail({
-                toMail: req.body.email,
+            const message = compileEjs({ template: 'general-template' })({
+                header: 'Welcome to Shoman',
+                body: `Your account has been <b> successfully created! </b>. Thank you for joining Shoman. 
+                       Click on <b> "Verify" </b> to verify your email address`,
+                name: req.body.Username,
+                ctaText: 'Verify',
+                ctaLink: `${domain}/api/v1/verify-email?token=${jwtSignature(req.body.email)}`,
+            })
+            sendEmail({
+                html: message,
                 subject: 'Verify Your Email',
-                text: 'Kindly Verify your Email address',
-                domain: domain,
-                Username: req.body.Username,
+                to: req.body.email,
             })
         }
     })
 }
 
-// router.post("/login", (req, res) => {
 export const Login = (req, res) => {
     const { errors, isValid } = validateLoginInput(req.body)
     if (!isValid) {
@@ -60,11 +62,11 @@ export const Login = (req, res) => {
     }
     const email = req.body.email
     const password = req.body.password
-    User.findOne({ email }).then((user) => {
+    User.findOne({ email }).then(user => {
         if (!user) {
             return res.status(404).json({ emailnotfound: 'Email not found' })
         }
-        bcrypt.compare(password, user.password).then((isMatch) => {
+        bcrypt.compare(password, user.password).then(isMatch => {
             if (isMatch) {
                 const payload = {
                     id: user.id,
@@ -81,20 +83,15 @@ export const Login = (req, res) => {
                             success: true,
                             token: 'Bearer ' + token,
                         })
-                    }
+                    },
                 )
             } else {
-                return res
-                    .status(400)
-                    .json({ passwordincorrect: 'Password incorrect' })
+                return res.status(400).json({ passwordincorrect: 'Password incorrect' })
             }
         })
     })
 }
 
-// router.get(
-//   "/all",
-//   passport.authenticate("jwt", { session: false }),
 export const GetAllUsers = (req, res, next) => {
     User.find(function (err, user) {
         if (err) {
@@ -113,29 +110,32 @@ export const ForgotPassword = (req, res) => {
     const domain = req.protocol + '://' + req.get('host')
     req.body.domain = domain
     const Email = req.body.email
-    User.findOne({ email: Email }).then((user) => {
+    User.findOne({ email: Email }).then(user => {
         if (!user) {
             res.status(404).json({
                 message: 'No user with that email Address exists',
             })
         } else {
             res.status(200).json({
-                message:
-                    'An email was sent to your email address Follow the instructions to reset your email',
+                message: 'An email was sent to your email address Follow the instructions to reset your email',
             })
-            resetPassword({
-                toMail: req.body.email,
-                subject: 'Resquest for password change',
-                text:
-                    'You are receiving this email because you requested to change your password. If this eamil was sent by mistake kindly ignore',
-                domain: domain,
-                Username: user.Username,
+            const message = compileEjs({ template: 'general-template' })({
+                header: 'Forgot Password',
+                body: `We have sent you this email <b>in response to your request to reset your password on Shoman</b>.
+              Please click the link below to complete your reset. If this email was sent by mistake kindly ignore`,
+                ctaText: 'Reset My Password',
+                ctaLink: `${domain}/api/v1/users/reset-password?token=${jwtSignature(req.body.email, Math.floor(Date.now() / 1000) + 7200)}`,
+                name: user.Username,
+            })
+            sendEmail({
+                html: message,
+                subject: 'Request for password change',
+                to: req.body.email,
             })
         }
     })
 }
 
-// router.put('/reset-password', (req, res) => {
 export const ResetPassword = (req, res) => {
     const domain = req.protocol + '://' + req.get('host')
     req.body.domain = domain
@@ -143,11 +143,10 @@ export const ResetPassword = (req, res) => {
     const Email = jwtVerify(token)
     if (Email.message === 'jwt expired Not valid') {
         res.status(400).json({
-            message:
-                'Request couldnot be completed at the moment request for password reset again',
+            message: 'Request couldnot be completed at the moment request for password reset again',
         })
     }
-    User.findOne({ email: Email }).then((user) => {
+    User.findOne({ email: Email }).then(user => {
         if (!user) {
             res.status(404).json({ message: 'User doesnot exist' })
         } else {
@@ -157,23 +156,23 @@ export const ResetPassword = (req, res) => {
                     if (err) throw err
                     user.password = hash
                     user.save()
-                        .then((user) =>
-                            res
-                                .status(200)
-                                .json({ message: 'password was changed', user })
-                        )
-                        .catch((err) => console.log(err))
+                        .then(user => res.status(200).json({ message: 'password was changed', user }))
+                        .catch(err => console.log(err))
                 })
-                successMail({
-                    toMail: user.email,
-                    subject: 'Your Password was successfully changed ',
-                    text: 'Kindly Verify your Email address',
-                    domain: domain,
-                    Username: user.Username,
+                const message = compileEjs({ template: 'general-template' })({
+                    header: 'Password Change Success',
+                    body: `Your password has successfully been changed</b>.
+                  You can now login using your new password<b>Thank you for your continued support 😊😊</b>`,
+                    ctaText: 'Login To Continue',
+                    ctaLink: `${domain}/api/v1/users/login`,
+                    name: user.Username,
+                })
+                sendEmail({
+                    html: message,
+                    subject: 'Your Password was successfully changed',
+                    to: user.email,
                 })
             })
         }
     })
 }
-
-// module.exports = router

@@ -1,7 +1,7 @@
-import mongoose, { model } from "mongoose";
+import mongoose, { model } from 'mongoose'
 // if user is registered store the user_id here 1-1 relationship
 
-const { Schema } = mongoose;
+const { Schema } = mongoose
 
 const applicationSchema = new Schema(
     {
@@ -51,7 +51,7 @@ const applicationSchema = new Schema(
     },
     {
         timestamps: true,
-    }
-);
+    },
+)
 
-export default model('Application', applicationSchema);
+export default model('Application', applicationSchema)
