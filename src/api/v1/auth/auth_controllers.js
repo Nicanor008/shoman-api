@@ -22,6 +22,7 @@ export const RegisterUser = (req, res) => {
                 Username: req.body.Username,
                 email: req.body.email,
                 password: req.body.password,
+                userType: req.body.role,
             })
             bcrypt.genSalt(10, (err, salt) => {
                 bcrypt.hash(newUser.password, salt, (err, hash) => {
@@ -71,6 +72,7 @@ export const Login = (req, res) => {
                 const payload = {
                     id: user.id,
                     Username: user.Username,
+                    role: user.userType,
                 }
                 jwt.sign(
                     payload,

@@ -19,6 +19,11 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    userType: {
+        type: String,
+        enum: ['user', 'admin', 'mentor', 'mentee'],
+        default: 'user',
+    },
     date: {
         type: Date,
         default: Date.now,

@@ -1,7 +1,7 @@
 const express = require('express')
-const passport = require('passport')
-const { RegisterUser, Login, GetAllUsers, ForgotPassword, ResetPassword } = require('./auth_controllers')
 
+const { RegisterUser, Login, GetAllUsers, ForgotPassword, ResetPassword } = require('./auth_controllers')
+import { isAuthenticated } from '../../../middlewares/auth'
 const router = express.Router()
 
 // auth
@@ -11,6 +11,6 @@ router.post('/users/forgot-password', ForgotPassword)
 router.put('/users/reset-password', ResetPassword)
 
 // users
-router.get('/users/all', passport.authenticate('jwt', { session: false }), GetAllUsers)
+router.get('/users/all', isAuthenticated, GetAllUsers)
 
 export default router
