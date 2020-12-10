@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec babel-node src/index.js",
-    "start": "babel-node src/index.js",
+    "start": "node dist/index.js",
     "build": "babel ./src -d dist --copy-files",
     "serve": "node dist/server.js"
   },
@@ -27,12 +27,13 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "chalk": "^3.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
+    "express-validator": "^6.7.0",
     "googleapis": "^65.0.0",
     "html-minifier": "^4.0.0",
-    "express-validator": "^6.7.0",
     "is-empty": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.10.17",
@@ -43,7 +44,7 @@
     "validator": "^12.2.0"
   },
   "devDependencies": {
-    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/plugin-transform-runtime": "^7.12.10",
     "husky": "^4.3.0",
     "prettier": "^2.2.1",
     "pretty-quick": "^3.1.0"
