@@ -36,7 +36,8 @@ const connectWithRetry = () => {
         keepAlive: 1,
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        autoIndex: false,
+        useCreateIndex: true,
+        useFindAndModify: false,
     })
 }
 

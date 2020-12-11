@@ -19,6 +19,7 @@ const UserSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    teamNumber: String,
     userType: {
         type: String,
         enum: ['user', 'admin', 'mentor', 'mentee'],

@@ -20,12 +20,12 @@ export default (err, req, res) => {
         if (['dev', 'test'].indexOf(process.env.NODE_ENV) > -1) {
             serverError = `: ${err.message}`
         }
-        res.status(500).json({
+        //we want to see the actual error
+        console.log(err.message)
+        return res.status(500).json({
             status: 'error',
             message: `Internal server error${serverError}`,
             errors: [], // no data to return
         })
-        //we want to see the actual error
-        console.log(err.message)
     }
 }

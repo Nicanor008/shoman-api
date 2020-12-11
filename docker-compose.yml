@@ -6,10 +6,14 @@ services:
     build: .
     ports:
       - '4040:4000'
-    links:
-      - mongo
+    depends_on:
+    - mongo
   mongo:
     container_name: shomanmongo
     image: mongo
     ports:
       - '27018:27017'
+    volumes: 
+    - mongo-volume:/data/db
+volumes: 
+  mongo-volume:
