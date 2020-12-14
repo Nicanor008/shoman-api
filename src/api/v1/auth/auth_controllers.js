@@ -67,10 +67,14 @@ export const Login = (req, res) => {
         if (!user) {
             return res.status(404).json({ emailnotfound: 'Email not found' })
         }
+        if (user?.isVerified === false) {
+            return res.status(404).json({ notVerified: 'Your account has not been verified!' })
+        }
         bcrypt.compare(password, user.password).then(isMatch => {
             if (isMatch) {
                 const payload = {
                     id: user.id,
+                    email: user.email,
                     Username: user.Username,
                     role: user.userType,
                 }
@@ -84,6 +88,7 @@ export const Login = (req, res) => {
                         res.json({
                             success: true,
                             token: 'Bearer ' + token,
+                            user: user,
                         })
                     },
                 )
