@@ -41,14 +41,48 @@ const teamCreateRules = () => {
                 }
                 return true
             }),
+        body('menteesId')
+            .optional()
+            .isArray()
+            .withMessage('Expected an array')
+            .custom(async (values, {}) => {
+                const userExist = await User.find({ _id: { $in: values }, userType: 'mentee' })
+                if (userExist.length == 0) {
+                    return Promise.reject('Ensure all the menteesId are valid and of user-type "mentee"')
+                }
+                return true
+            }),
     ]
 }
 
-const addMenteesToTeamRules = () => {
-    return [check('teamId', 'Ensure you enter a valid ID').isMongoId(), body('menteesId', 'Expected an array, mentees can not be empty').isArray()]
+const addUsersToTeamRules = () => {
+    return [
+        check('teamId', 'Ensure you enter a valid ID').isMongoId(), 
+        body('menteesId')
+            .isArray()
+            .withMessage('Expected an array, mentees can not be empty')
+            .custom(async (values, {}) => {
+                const userExist = await User.find({ _id: { $in: values }, userType: 'mentee' })
+                if (userExist.length == 0) {
+                    return Promise.reject('Ensure all the menteesId are valid and of user-type "mentee"')
+                }
+                return true
+            }),
+        body('mentorId')
+            .optional()
+            .isMongoId()
+            .withMessage('Ensure you enter a valid ID')
+            .custom(async (value, {}) => {
+                const userExist = await User.findOne({ _id: value, userType: 'mentor' })
+                if (!userExist) {
+                    return Promise.reject('Mentor with the ID does not exist')
+                }
+                return true
+            }),
+    ]
 }
 
 export default {
     teamCreateRules,
-    addMenteesToTeamRules,
+    addUsersToTeamRules,
 }

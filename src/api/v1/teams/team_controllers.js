@@ -5,18 +5,19 @@ import responseHandler from '../../../utils/responseHandler'
 
 export async function createTeam(req, res, next) {
     try {
-        const { team_name, mentorId, trackId } = req.body
+        const { team_name, mentorId, trackId, menteesId } = req.body
         let teamNumber
         const lastEntry = await Team.findOne().sort({ $natural: -1 }).limit(1)
         if (lastEntry) {
             // team names starting with SH- for shoman
-            teamNumber = `SH-${parseInt(team.team_number.slice(3)) + 1}` // generate team number from last entry
+            teamNumber = `SHOMAN-${parseInt(lastEntry.team_number.slice(7)) + 1}` // generate team number from last entry
         } else {
-            teamNumber = 'SH-101' // starting with 101 but could be changed
+            teamNumber = 'SHOMAN-101' // starting with 101 but could be changed
         }
         const newTeam = await new Team({
             team_name,
             mentorId,
+            menteesId: menteesId && menteesId,
             main_trackId: trackId,
             team_number: teamNumber,
         }).save()
@@ -33,7 +34,14 @@ export async function createTeam(req, res, next) {
         if (!updateMentorTeamNo) {
             return next(new CustomError(404, "Error encountered while updating mentor's team number"))
         }
-        return responseHandler(res, 201, newTeam, 'Team created successfully')
+        // update the mentees team number also if included during creation
+        if (menteesId) {
+            const updateMenteesTeamNo = await User.updateMany({ _id: { $in: menteesId } }, { $set: { teamNumber } }, { new: true })
+            if (!updateMenteesTeamNo) {
+                return next(new CustomError(404, "Error encountered while updating users' team numbers"))
+            }
+        }
+        return responseHandler(res, 201, newTeam, 'Team has been created successfully')
     } catch (error) {
         next(new InternalServerError(error))
     }
@@ -56,7 +64,7 @@ export async function getAllTeams(req, res, next) {
         if (totalCount === 0) {
             return res.status(404).json({
                 status: 'error',
-                message: 'No Matching Team found',
+                message: 'No team(s) available',
             })
         }
         return res.status(200).json({
@@ -99,16 +107,19 @@ export async function deleteTeam(req, res, next) {
 
 export async function addUsersToTeam(req, res, next) {
     try {
-        const { menteesId } = req.body
+        const { menteesId, mentorId } = req.body
         const { teamId } = req.params
-        const updatedTeam = await Team.findByIdAndUpdate(teamId, {
+        const updateFields = {
             $addToSet: {
-                // pushes an array of mentees to the schema
                 menteesId: {
-                    $each: menteesId, // if id already exists, menteeId is not added to avoid duplicates
+                    $each: menteesId,
                 },
             },
-        })
+        }
+        if (mentorId) {
+            updateFields['$set'] = { mentorId }
+        }
+        const updatedTeam = await Team.findByIdAndUpdate(teamId, updateFields)
         if (!updatedTeam) {
             return next(new CustomError(404, "Team with the ID doesn't exist or has been deleted"))
         }
@@ -116,7 +127,20 @@ export async function addUsersToTeam(req, res, next) {
         if (!updateMenteesTeamNo) {
             return next(new CustomError(404, "Error encountered while updating mentees' team numbers"))
         }
-        return responseHandler(res, 200, updatedTeam, 'Mentees added to team successfully')
+        // update the mentor's team number also if included during creation
+        if (mentorId) {
+            const updateMentorTeamNo = await User.findByIdAndUpdate(
+                mentorId,
+                {
+                    $set: { teamNumber: updatedTeam.team_number },
+                },
+                { new: true },
+            )
+            if (!updateMentorTeamNo) {
+                return next(new CustomError(404, "Error encountered while updating mentor's team number"))
+            }
+        }
+        return responseHandler(res, 200, updatedTeam, 'User(s) added to team successfully')
     } catch (error) {
         next(new InternalServerError(error))
     }

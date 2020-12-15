@@ -25,6 +25,7 @@ mongoose
         keepAlive: 1,
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useFindAndModify: false,
         autoIndex: false,
     })
     .then(() => console.log(chalk.greenBright('connection to the database successful')))
