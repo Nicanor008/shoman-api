@@ -23,6 +23,7 @@ export const RegisterUser = (req, res) => {
                 email: req.body.email,
                 password: req.body.password,
                 userType: req.body.role,
+                stack: req.body.track,
             })
             bcrypt.genSalt(10, (err, salt) => {
                 bcrypt.hash(newUser.password, salt, (err, hash) => {
@@ -65,10 +66,10 @@ export const Login = (req, res) => {
     const password = req.body.password
     User.findOne({ email }).then(user => {
         if (!user) {
-            return res.status(404).json({ emailnotfound: 'Email not found' })
+            return res.status(404).json({ email: 'Email not found' })
         }
         if (user?.isVerified === false) {
-            return res.status(404).json({ notVerified: 'Your account has not been verified!' })
+            return res.status(404).json({ email: 'Your account has not been verified!' })
         }
         bcrypt.compare(password, user.password).then(isMatch => {
             if (isMatch) {
@@ -87,13 +88,13 @@ export const Login = (req, res) => {
                     (err, token) => {
                         res.json({
                             success: true,
-                            token: 'Bearer ' + token,
+                            token: token,
                             user: user,
                         })
                     },
                 )
             } else {
-                return res.status(400).json({ passwordincorrect: 'Password incorrect' })
+                return res.status(400).json({ password: 'Password incorrect' })
             }
         })
     })

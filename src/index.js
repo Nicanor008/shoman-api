@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const chalk = require('chalk')
 const mongoose = require('mongoose')
+const cors = require('cors')
 
 import route from './routes'
 import errorHandler from './utils/errorHandler'
@@ -19,7 +20,7 @@ app.use(
 app.use(bodyParser.json())
 
 app.use(morgan('dev'))
-
+app.use(cors())
 mongoose
     .connect(DB, {
         keepAlive: 1,
