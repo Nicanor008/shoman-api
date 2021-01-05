@@ -24,6 +24,11 @@ const UserSchema = new Schema({
         enum: ['user', 'admin', 'mentor', 'mentee'],
         default: 'user',
     },
+    stack: {
+        type: String,
+        enum: ['frontend', 'backend', 'fullstack', 'mobile'],
+        required: true,
+    },
     date: {
         type: Date,
         default: Date.now,
