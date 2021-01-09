@@ -3,12 +3,15 @@ const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const chalk = require('chalk')
 const mongoose = require('mongoose')
+const cors = require('cors')
 
 import route from './routes'
 import errorHandler from './utils/errorHandler'
 
 const app = express()
 const DB = require('./config/keys').mongoUri
+
+app.use(cors())
 
 app.use(
     bodyParser.urlencoded({
