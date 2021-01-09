@@ -11,6 +11,8 @@ import errorHandler from './utils/errorHandler'
 const app = express()
 const DB = require('./config/keys').mongoUri
 
+app.use(cors())
+
 app.use(
     bodyParser.urlencoded({
         extended: false,

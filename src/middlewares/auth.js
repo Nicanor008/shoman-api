@@ -8,8 +8,8 @@ const Auth = (req, res) => {
         const decoded = jwt.verify(token, process.env.SECRETKEY)
         return decoded
     } catch (error) {
-        return res.status(401).json({
-            message: 'Auth failed',
+        return res.status(403).json({
+            message: 'Auth failed. Permission Denied',
         })
     }
 }
