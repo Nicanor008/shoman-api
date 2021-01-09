@@ -19,16 +19,7 @@ const menteeApplyRules = () => {
                 return true
             })
             .normalizeEmail(),
-        body('track')
-            .notEmpty()
-            .withMessage('Learning track is required')
-            .custom(async (value, {}) => {
-                const track = await Tracks.findOne({ name: value })
-                if (!track) {
-                    return Promise.reject('Learning Track name does not exist')
-                }
-                return true
-            }),
+        body('track').notEmpty().withMessage('Learning track is required'),
         body('goal').notEmpty().withMessage('Goals of taking this mentorship is required'),
         body('previous_experience').notEmpty().withMessage('Details about previous experience is required'),
     ]
