@@ -3,11 +3,12 @@ import userRoutes from '../api/v1/auth'
 import menteeRoutes from '../api/v1/mentees'
 import trackRoutes from '../api/v1/tracks'
 import verifyRoutes from '../api/v1/auth/users'
+import teamRoutes from '../api/v1/teams'
 import defaultRoute from '../api/default'
 
 const apiPrefix = '/api/v1'
 
-const routes = [userRoutes, verifyRoutes, defaultRoute, menteeRoutes, trackRoutes]
+const routes = [userRoutes, verifyRoutes, defaultRoute, menteeRoutes, trackRoutes, teamRoutes]
 
 export default app => {
     routes.forEach(element => {

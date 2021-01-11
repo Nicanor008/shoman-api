@@ -11,6 +11,6 @@ router.post('/users/forgot-password', ForgotPassword)
 router.put('/users/reset-password', ResetPassword)
 
 // users
-router.get('/users/all', isAuthenticated, GetAllUsers)
+router.get('/users/all', GetAllUsers)
 
 export default router
