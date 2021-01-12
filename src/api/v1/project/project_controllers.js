@@ -1,5 +1,7 @@
 import { validateProjectInputs } from './validators'
 import Project from './project_model'
+import { InternalServerError } from '../../../utils/customError'
+import responseHandler from '../../../utils/responseHandler'
 
 export const CreateProjectController = (req, res) => {
     const newProject = new Project(req.body)
@@ -43,8 +45,7 @@ export const GetProjectsController = (req, res, next) => {
     })
 }
 
-
-export async function getSingleProject(req, res, next) {
+export async function GetProjectController(req, res, next) {
     try {
         const { projectId } = req.params
         const project = await Project.findById(projectId)

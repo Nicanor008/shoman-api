@@ -1,11 +1,11 @@
 const express = require('express')
-import { CreateProjectController, GetProjectsController, getSingleProject } from './project_controllers'
+import { CreateProjectController, GetProjectsController, GetProjectController } from './project_controllers'
 import { isAuthenticated, isMentor } from '../../../middlewares/auth'
 
 const router = express.Router()
 
-router.post('/project', isMentor, CreateProjectController)
+router.post('/projects', isMentor, CreateProjectController)
 router.get('/projects', isAuthenticated, GetProjectsController)
-router.get('/project/:projectId>', isAuthenticated, getSingleProject)
+router.get('/projects/:projectId', isAuthenticated, GetProjectController)
 
 export default router
