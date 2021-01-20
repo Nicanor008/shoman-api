@@ -14,9 +14,9 @@ const Auth = (req, res) => {
     }
 }
 
-const roleHelper = (req, res, next, role) => {
+const roleHelper = (req, res, next, role, secondaryRole) => {
     let currentUser = Auth(req, res)
-    if (currentUser && currentUser.role == role) {
+    if (currentUser && (currentUser.role == role || currentUser.role == secondaryRole)) {
         req.userData = currentUser
         next()
     } else {
@@ -49,8 +49,13 @@ const isMentor = (req, res, next) => {
     roleHelper(req, res, next, 'mentor')
 }
 
+// use this if the task can be accessed by both admin and mentor
+const isMentorOrAdmin = (req, res, next) => {
+    roleHelper(req, res, next, 'mentor', 'admin')
+}
+
 const isMentee = (req, res, next) => {
     roleHelper(req, res, next, 'mentee')
 }
 
-export { isAuthenticated, isAdmin, isUser, isMentor, isMentee }
+export { isAuthenticated, isAdmin, isUser, isMentor, isMentorOrAdmin, isMentee }
