@@ -27,6 +27,11 @@ const ProjectSchema = new Schema({
         type: String,
         required: true,
     },
+    isDeleted: {
+        type: Boolean,
+        index: true,
+        default: false,
+    },
 })
 
 export default model('project', ProjectSchema)
