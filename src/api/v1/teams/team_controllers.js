@@ -2,6 +2,7 @@ import Team from './team_model'
 const User = require('../users/users_model')
 import { InternalServerError, CustomError } from '../../../utils/customError'
 import responseHandler from '../../../utils/responseHandler'
+const mongodb = require('mongodb')
 
 export async function createTeam(req, res, next) {
     try {
@@ -87,6 +88,42 @@ export async function getATeam(req, res, next) {
             return next(new CustomError(404, "Team doesn't exist or has been deleted"))
         }
         return responseHandler(res, 200, team, 'Team found')
+    } catch (error) {
+        next(new InternalServerError(error))
+    }
+}
+
+/*
+ * GET: the logged in user team details
+ */
+export async function CurrentUserTeam(req, res, next) {
+    try {
+        const allUsers = await Team.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'mentorId',
+                    foreignField: '_id',
+                    as: 'mentor',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'tracks',
+                    localField: 'main_trackId',
+                    foreignField: '_id',
+                    as: 'track',
+                },
+            },
+            { $unwind: '$mentor' },
+            { $unwind: '$track' },
+        ])
+        const team = allUsers.filter(team => team.mentor._id.toString() === req.userData.id || team.menteesId.filter(user => user.toString() === req.userData.id))
+        if (!team || team.length === 0) {
+            return next(new CustomError(404, 'You not assigned to a team. Contact Admin'))
+        }
+
+        return responseHandler(res, 200, team[0], 'Current User Details')
     } catch (error) {
         next(new InternalServerError(error))
     }
