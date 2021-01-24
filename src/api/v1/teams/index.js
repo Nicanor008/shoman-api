@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import validations from './team_validation'
 import { validate, validateTeamId } from '../../../middlewares/validation'
-import { createTeam, getAllTeams, getATeam, deleteTeam, addUsersToTeam } from './team_controllers'
+import { createTeam, getAllTeams, getATeam, deleteTeam, addUsersToTeam, CurrentUserTeam } from './team_controllers'
+import { isAuthenticated } from '../../../middlewares/auth'
 
 const router = Router()
 
@@ -17,6 +18,12 @@ router.post('/teams', validations.teamCreateRules(), validate, createTeam)
  * optional query params
  */
 router.get('/teams', getAllTeams)
+
+/**
+ * view a team details for the currently logged in user
+ * /api/v1/teams/current-user - GET
+ */
+router.get('/teams/current-user', isAuthenticated, CurrentUserTeam)
 
 /**
  * view a team
