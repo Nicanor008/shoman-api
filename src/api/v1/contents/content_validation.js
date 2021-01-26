@@ -1,9 +1,18 @@
 import { body } from 'express-validator'
 import Content from './content_model'
+import Tracks from '../tracks/track_model'
 
 const createContentRules = () => {
     return [
-        body('category').notEmpty().withMessage('Category field is required').trim(),
+        body('category', 'Ensure you enter Category with a valid ID')
+            .isMongoId()
+            .custom(async (value, {}) => {
+                const trackExist = await Tracks.findById(value)
+                if (!trackExist) {
+                    return Promise.reject('Category with the ID does not exist')
+                }
+                return true
+            }),
         body('topic')
             .notEmpty()
             .withMessage('Topic is required')

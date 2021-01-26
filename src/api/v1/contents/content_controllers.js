@@ -9,7 +9,7 @@ export async function createContent(req, res, next) {
     try {
         const userId = req.userData.id
         const { category, topic, content, focusGroup, estimatedDuration, deadline } = req.body
-        const isdateValid = validateDate(dueDate)
+        const isdateValid = validateDate(deadline)
         if (!isdateValid) {
             return next(new CustomError(422, 'Invalid date entered, Deadline must be after current Date'))
         }

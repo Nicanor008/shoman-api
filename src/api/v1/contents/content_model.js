@@ -16,7 +16,11 @@ const contentSchema = new Schema(
             type: String,
             default: 'shoman',
         },
-        category: stringRequired,
+        category: {
+            type: Schema.Types.ObjectId,
+            ref: 'Track',
+            required: true,
+        },
         topic: stringRequired,
         estimatedDuration: stringRequired,
         deadline: {
