@@ -107,7 +107,7 @@ export async function updateContent(req, res, next) {
         { contentId } = req.params
     try {
         const { deadline } = req.body
-        const updatedFields = {},
+        const updatedFields = { ...req.body },
             query = { _id: contentId }
         if (deadline) {
             const isDateValid = validateDate(deadline)
