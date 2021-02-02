@@ -228,28 +228,46 @@ export const FilterProjectsController = (req, res, next) => {
 export const GetProjectController = (req, res, next) => {
     const { projectId } = req.params
     const query = { _id: new mongodb.ObjectId(projectId), isDeleted: false }
-    Project.findOne(query, function (err, project) {
-        if (err) {
-            var err = new Error('error occurred')
-            return next(err)
-        }
-        if (!project) {
-            return res.status(404).json({
-                message: 'Project doest not exists',
+    Project.aggregate([
+        { $match: query },
+        {
+            $lookup: {
+                from: 'tracks',
+                localField: 'trackId',
+                foreignField: '_id',
+                as: 'track',
+            },
+        },
+        {
+            $lookup: {
+                from: 'teams',
+                localField: 'team',
+                foreignField: '_id',
+                as: 'team',
+            },
+        },
+        { $unwind: { path: '$track', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$team', preserveNullAndEmptyArrays: true } },
+    ])
+        .then(project => {
+            if (!project) {
+                return res.status(404).json({
+                    message: 'Project doest not exists',
+                })
+            }
+            return res.status(200).json({
+                status: 'success',
+                message: 'Project retrieved successfully',
+                project: project[0],
             })
-        }
-        return res.status(200).json({
-            status: 'success',
-            message: 'Project retrieved successfully',
-            project,
         })
-    }).catch(error => {
-        return res.status(500).json({
-            status: 'error',
-            message: 'Something went wrong. Try again',
-            error,
+        .catch(error => {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Something went wrong. Try again',
+                error,
+            })
         })
-    })
 }
 
 export const UpdateProjectController = (req, res) => {

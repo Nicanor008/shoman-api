@@ -4,6 +4,10 @@ import { InternalServerError, CustomError } from '../../../utils/customError'
 import responseHandler from '../../../utils/responseHandler'
 import validateDate from '../../../utils/checkDate'
 import isEmpty from '../../../utils/isEmpty'
+import mongoose from 'mongoose'
+const {
+    Types: { ObjectId },
+} = mongoose
 
 export async function createContent(req, res, next) {
     try {
@@ -82,17 +86,24 @@ export async function getAllContents(req, res, next) {
 
 export async function getContent(req, res, next) {
     try {
-        const { contentId } = req.params,
-            { id, role } = req.userData
-        const query = { _id: contentId }
-        const user = await User.findById(id)
-        if (!user) return next(new CustomError(401, 'Not authorized'))
-        if (role === 'mentee') query['$or'] = [{ focusGroup: user.teamNumber }, { focusGroup: 'shoman' }]
-        const content = await Content.findOne(query)
-        if (!content) {
-            return next(new CustomError(404, "Content doesn't exist or has been deleted"))
-        }
-        return responseHandler(res, 200, content, 'Content found')
+        const { contentId } = req.params
+        await Content.aggregate([
+            { $match: { _id: new ObjectId(contentId) } },
+            {
+                $lookup: {
+                    from: 'tracks',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category',
+                },
+            },
+            { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
+        ]).then(user => {
+            if (!user) {
+                return next(new CustomError(404, "Content doesn't exist or has been deleted"))
+            }
+            return responseHandler(res, 200, user[0], 'Content found')
+        })
     } catch (error) {
         next(new InternalServerError(error))
     }
