@@ -47,24 +47,33 @@ export async function getAllContents(req, res, next) {
         const user = await User.findById(userId)
         if (!user) return next(new CustomError(401, 'Not authorized'))
         if (user.userType === 'mentee') queryOptions['$or'] = [{ focusGroup: user.teamNumber }, { focusGroup: 'shoman' }]
-        contents = await Content.find(queryOptions)
-            .skip((page - 1) * limit)
-            .limit(limit * 1)
-            .sort({ createdAt: -1 })
-            .exec()
-        totalCount = await Content.countDocuments(queryOptions)
-        if (totalCount === 0) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'No content(s) available',
+        await Content.aggregate([
+            { $match: queryOptions },
+            {
+                $lookup: {
+                    from: 'tracks',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'track',
+                },
+            },
+            { $unwind: { path: '$track', preserveNullAndEmptyArrays: true } },
+            { $sort: { createdAt: -1 } },
+        ]).then(content => {
+            totalCount = content.length
+            if (totalCount === 0) {
+                return res.status(404).json({
+                    status: 'error',
+                    message: 'No content(s) available',
+                })
+            }
+            return res.status(200).json({
+                status: 'success',
+                totalCount,
+                content,
+                totalPages: Math.ceil(totalCount / limit),
+                currentPage: page,
             })
-        }
-        return res.status(200).json({
-            status: 'success',
-            totalCount,
-            contents,
-            totalPages: Math.ceil(totalCount / limit),
-            currentPage: page,
         })
     } catch (error) {
         next(new InternalServerError(error))
