@@ -28,6 +28,11 @@ const contentSchema = new Schema(
             required: true,
         },
         content: stringRequired,
+        isDeleted: {
+            type: Boolean,
+            default: false,
+            required: true,
+        },
     },
     {
         timestamps: true,

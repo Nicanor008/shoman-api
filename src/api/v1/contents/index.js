@@ -28,7 +28,7 @@ router.get('/contents/:contentId', isAuthenticated, getContent)
 /**
  * delete content - DELETE by admin
  */
-router.delete('/contents/:contentId',isAdmin, deleteContent)
+router.delete('/contents/:contentId', isMentorOrAdmin, deleteContent)
 
 /**
  * update content - PATCH by admin or aurhor

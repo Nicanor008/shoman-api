@@ -42,15 +42,15 @@ export async function getAllContents(req, res, next) {
     try {
         const userId = req.userData.id,
             queryOptions = {}
-        let contents,
-            totalCount,
+        let totalCount,
             { page, limit, search } = req.query
         page = parseInt(page, 10) || 1
         limit = parseInt(limit, 10) || 10
         if (search) queryOptions['topic'] = { $regex: search, $options: 'i' }
         const user = await User.findById(userId)
         if (!user) return next(new CustomError(401, 'Not authorized'))
-        if (user.userType === 'mentee') queryOptions['$or'] = [{ focusGroup: user.teamNumber }, { focusGroup: 'shoman' }]
+        if (user.userType === 'mentee' || user.userType === 'mentor') queryOptions['$or'] = [{ focusGroup: user.teamNumber }, { focusGroup: 'shoman' }]
+        queryOptions['isDeleted'] = false
         await Content.aggregate([
             { $match: queryOptions },
             {
@@ -112,11 +112,11 @@ export async function getContent(req, res, next) {
 export async function deleteContent(req, res, next) {
     const { contentId } = req.params
     try {
-        const content = await Content.findByIdAndDelete(contentId)
+        const content = await Content.findByIdAndUpdate(contentId, { isDeleted: true })
         if (!content) {
             return next(new CustomError(404, "Content with the ID doesn't exist or has already been deleted"))
         }
-        return responseHandler(res, 200, content, 'Learning content deleted successfully')
+        return responseHandler(res, 200, content, 'Learning content has been archived')
     } catch (error) {
         next(new InternalServerError(error))
     }
