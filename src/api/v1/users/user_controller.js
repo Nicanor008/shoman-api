@@ -37,3 +37,24 @@ export async function GetASingleUser(req, res, next) {
         return next(CustomError(error))
     }
 }
+
+// filter users by type/role
+export async function FilterUsersByRole(req, res, next) {
+    try {
+        const { userType } = req.params
+        const filteredUsers = await User.find({ userType })
+        if (!filteredUsers || filteredUsers.length === 0) {
+            return res.status(404).json({
+                status: 'success',
+                message: `No user(s) of type ${userType}`,
+            })
+        }
+        return res.status(200).json({
+            status: 'success',
+            message: `${filteredUsers.length} ${userType} found`,
+            data: filteredUsers,
+        })
+    } catch (error) {
+        return next(CustomError(error))
+    }
+}

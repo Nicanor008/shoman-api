@@ -28,6 +28,11 @@ const teamSchema = new Schema(
             ref: 'Track',
             required: true,
         },
+        isDeleted: {
+            type: Boolean,
+            default: false,
+            required: true,
+        },
     },
     {
         timestamps: true,

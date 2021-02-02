@@ -55,14 +55,32 @@ export async function getAllTeams(req, res, next) {
         let teams, totalCount
         page = parseInt(page, 10) || 1
         limit = parseInt(limit, 10) || 10
-        if (search) queryOptions['team_name'] = { $regex: search, $options: 'i' }
-        teams = await Team.find(queryOptions)
-            .skip((page - 1) * limit)
-            .limit(limit * 1)
-            .sort({ createdAt: -1 })
-            .exec()
-        totalCount = await Team.countDocuments(queryOptions)
-        if (totalCount === 0) {
+        // to be used later
+        if (search) queryOptions['team_name'] = { $regex: search, $options: 'i', isDeleted: true }
+        teams = await Team.aggregate([
+            { $match: { isDeleted: false } },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'mentorId',
+                    foreignField: '_id',
+                    as: 'mentor',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'tracks',
+                    localField: 'main_trackId',
+                    foreignField: '_id',
+                    as: 'track',
+                },
+            },
+            { $unwind: { path: '$mentor', preserveNullAndEmptyArrays: true } },
+            { $unwind: { path: '$track', preserveNullAndEmptyArrays: true } },
+            { $sort: { createdAt: -1 } },
+        ])
+        // totalCount = teams && teams.length
+        if (!teams && teams.length === 0) {
             return res.status(404).json({
                 status: 'error',
                 message: 'No team(s) available',
@@ -70,7 +88,7 @@ export async function getAllTeams(req, res, next) {
         }
         return res.status(200).json({
             status: 'success',
-            totalCount,
+            totalCount: teams.length,
             teams,
             totalPages: Math.ceil(totalCount / limit),
             currentPage: page,
@@ -85,7 +103,7 @@ export async function getATeam(req, res, next) {
         const { teamId } = req.params
         const team = await Team.findById(teamId)
         if (!team) {
-            return next(new CustomError(404, "Team doesn't exist or has been deleted"))
+            return next(new CustomError(404, "Team doesn't exist or has been archived"))
         }
         return responseHandler(res, 200, team, 'Team found')
     } catch (error) {
@@ -132,7 +150,7 @@ export async function CurrentUserTeam(req, res, next) {
 export async function deleteTeam(req, res, next) {
     const { teamId } = req.params
     try {
-        const team = await Team.findByIdAndDelete(teamId)
+        const team = await Team.findByIdAndUpdate(teamId, { isDeleted: true })
         if (!team) {
             return next(new CustomError(404, "Team with the ID doesn't exist or has already been deleted"))
         }
