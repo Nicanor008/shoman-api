@@ -1,10 +1,13 @@
 import { validateProjectInputs } from './validators'
 import Project from './project_model'
+import Team from '../teams/team_model'
+import { InternalServerError } from '../../../utils/customError'
 
 const mongodb = require('mongodb')
 
 export const CreateProjectController = (req, res) => {
-    const newProject = new Project(req.body)
+    const body = Object.assign({}, { author: req.userData.id }, req.body)
+    const newProject = new Project(body)
     const { errors, isValid } = validateProjectInputs(req.body)
     if (!isValid) {
         return res.status(400).json(errors)
@@ -26,27 +29,202 @@ export const CreateProjectController = (req, res) => {
         })
 }
 
-export const GetProjectsController = (req, res, next) => {
-    const query = { isDeleted: false }
-    Project.find(query, function (err, projects) {
-        if (err) {
-            var err = new Error('error occurred')
-            return next(err)
-        }
-        return res.status(200).json({
-            status: 'success',
-            message: 'All projects',
-            projects,
+/*
+ * GET Projects
+ * Display projects only to the team users and publicly allowed by shoman access
+ */
+export async function GetTeamProjectsController(req, res, next) {
+    const userId = req.userData.id
+    const teams = await Team.find()
+    if (teams) {
+        teams.map(team => {
+            if (team.mentorId.toString() === req.userData.id || (team.menteesId && team.menteesId.includes(userId))) {
+                Project.aggregate([
+                    {
+                        $match: {
+                            isDeleted: false,
+                            $or: [{ team: team._id }, { showmanAccess: true }],
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: 'tracks',
+                            localField: 'trackId',
+                            foreignField: '_id',
+                            as: 'track',
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: 'teams',
+                            localField: 'team',
+                            foreignField: '_id',
+                            as: 'team',
+                        },
+                    },
+                    { $unwind: { path: '$track', preserveNullAndEmptyArrays: true } },
+                    { $unwind: { path: '$team', preserveNullAndEmptyArrays: true } },
+                    { $sort: { createdAt: -1 } },
+                ])
+                    .then(projects => {
+                        if (projects.length === 0) {
+                            return res.status(404).json({
+                                status: 'success',
+                                message: 'No Project available',
+                            })
+                        }
+                        return res.status(200).json({
+                            status: 'success',
+                            message: 'All projects',
+                            total: projects.length,
+                            projects,
+                        })
+                    })
+                    .catch(error => {
+                        return next(new InternalServerError(error))
+                    })
+            } else if (req.userData.role === 'admin') {
+                Project.aggregate([
+                    {
+                        $match: {
+                            isDeleted: false,
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: 'tracks',
+                            localField: 'trackId',
+                            foreignField: '_id',
+                            as: 'track',
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: 'teams',
+                            localField: 'team',
+                            foreignField: '_id',
+                            as: 'team',
+                        },
+                    },
+                    { $unwind: { path: '$track', preserveNullAndEmptyArrays: true } },
+                    { $unwind: { path: '$team', preserveNullAndEmptyArrays: true } },
+                    { $sort: { createdAt: -1 } },
+                ])
+                    .then(projects => {
+                        if (projects.length === 0) {
+                            return res.status(404).json({
+                                status: 'success',
+                                message: 'No Project available',
+                            })
+                        }
+                        return res.status(200).json({
+                            status: 'success',
+                            message: 'All projects',
+                            total: projects.length,
+                            projects,
+                        })
+                    })
+                    .catch(error => {
+                        return next(new InternalServerError(error))
+                    })
+            }
         })
-    }).catch(error => {
-        return res.status(500).json({
-            status: 'error',
-            message: 'Something went wrong. Try again',
-            error,
-        })
-    })
+    }
 }
 
+/*
+ * GET all Projects - admin
+ */
+export const GetAllProjectsController = (req, res, next) => {
+    Project.aggregate([
+        { $match: { isDeleted: false } },
+        {
+            $lookup: {
+                from: 'tracks',
+                localField: 'trackId',
+                foreignField: '_id',
+                as: 'track',
+            },
+        },
+        {
+            $lookup: {
+                from: 'teams',
+                localField: 'team',
+                foreignField: '_id',
+                as: 'team',
+            },
+        },
+        { $unwind: { path: '$track', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$team', preserveNullAndEmptyArrays: true } },
+    ])
+        .then(projects => {
+            if (projects.length === 0) {
+                return res.status(404).json({
+                    status: 'error',
+                    message: 'No Project available',
+                })
+            }
+            return res.status(200).json({
+                status: 'success',
+                message: 'All projects',
+                total: projects.length,
+                projects,
+            })
+        })
+        .catch(error => {
+            return next(new InternalServerError(error))
+        })
+}
+
+/*
+ * GET one Project - all users
+ */
+export const FilterProjectsController = (req, res, next) => {
+    let { status } = req.params
+    status = status === 'true' ? true : false
+    Project.aggregate([
+        { $match: { isDeleted: status } },
+        {
+            $lookup: {
+                from: 'tracks',
+                localField: 'trackId',
+                foreignField: '_id',
+                as: 'track',
+            },
+        },
+        {
+            $lookup: {
+                from: 'teams',
+                localField: 'team',
+                foreignField: '_id',
+                as: 'team',
+            },
+        },
+        { $unwind: '$track' },
+        { $unwind: '$team' },
+    ])
+        .then(projects => {
+            if (projects.length === 0) {
+                return res.status(404).json({
+                    status: 'error',
+                    message: 'No Project available',
+                })
+            }
+            return res.status(200).json({
+                status: 'success',
+                message: 'All projects',
+                total: projects.length,
+                projects,
+            })
+        })
+        .catch(error => {
+            return next(new InternalServerError(error))
+        })
+}
+
+/*
+ * GET one Project - all users
+ */
 export const GetProjectController = (req, res, next) => {
     const { projectId } = req.params
     const query = { _id: new mongodb.ObjectId(projectId), isDeleted: false }
@@ -57,7 +235,7 @@ export const GetProjectController = (req, res, next) => {
         }
         if (!project) {
             return res.status(404).json({
-                message: 'Project doest not exits',
+                message: 'Project doest not exists',
             })
         }
         return res.status(200).json({
@@ -108,11 +286,11 @@ export const DeleteProjectController = (req, res) => {
     Project.findOneAndUpdate(query, { isDeleted: true, showmanAccess: true })
         .then(project => {
             if (!project) {
-                res.status(404).json({ message: 'Project does not exist' })
+                return res.status(404).json({ message: 'Project does not exist or is already archived' })
             } else {
-                res.status(201).json({
+                return res.status(201).json({
                     status: 'success',
-                    message: 'Project deleted successfully',
+                    message: 'Project has been archived successfully',
                 })
             }
         })

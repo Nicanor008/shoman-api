@@ -20,8 +20,8 @@ const roleHelper = (req, res, next, role, secondaryRole) => {
         req.userData = currentUser
         next()
     } else {
-        return res.status(401).json({
-            message: 'Auth failed',
+        return res.status(403).json({
+            message: 'Auth failed. Permission Denied',
         })
     }
 }
@@ -32,7 +32,7 @@ const isAuthenticated = (req, res, next) => {
         next()
     } catch (error) {
         return res.status(401).json({
-            message: 'Auth failed',
+            message: 'Auth failed. Login to continue',
         })
     }
 }
