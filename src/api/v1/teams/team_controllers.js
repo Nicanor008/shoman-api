@@ -2,7 +2,6 @@ import Team from './team_model'
 const User = require('../users/users_model')
 import { InternalServerError, CustomError } from '../../../utils/customError'
 import responseHandler from '../../../utils/responseHandler'
-const mongodb = require('mongodb')
 
 export async function createTeam(req, res, next) {
     try {
@@ -140,8 +139,16 @@ export async function CurrentUserTeam(req, res, next) {
         if (!team || team.length === 0) {
             return next(new CustomError(404, 'You not assigned to a team. Contact Admin'))
         }
-
-        return responseHandler(res, 200, team[0], 'Current User Details')
+        if (team[0].menteesId.length > 0) {
+            const mentees = []
+            for (let i = 0; i < team[0].menteesId.length; i++) {
+                mentees.push(await User.findById(team[0].menteesId[i]))
+            }
+            return res.status(200).json({ status: 'success', message: 'Current User Details', data: team[0], mentees })
+        } else {
+            return responseHandler(res, 200, team[0], 'Current User Details')
+        }
+        // team[0].menteesId(mentees => console.log("<>>>>>>>>>....>>>>>>>..>>>..>.>..>......>......", mentees))
     } catch (error) {
         next(new InternalServerError(error))
     }

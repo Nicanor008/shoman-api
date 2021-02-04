@@ -5,7 +5,7 @@ export function validateTrackInputs(data) {
     let errors = {}
     data.name = !isEmpty(data.name) ? data.name : ''
     if (Validator.isEmpty(data.name)) {
-        errors.Username = 'Track name is required'
+        errors.name = 'Track name is required'
     }
     return {
         errors,

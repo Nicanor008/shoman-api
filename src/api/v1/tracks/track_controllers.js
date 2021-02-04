@@ -7,17 +7,17 @@ export const CreateTrackController = (req, res) => {
     req.body.domain = domain
     const { errors, isValid } = validateTrackInputs(req.body)
     if (!isValid) {
-        return res.status(400).json(errors)
+        return res.status(400).json({ status: 'error', errors })
     }
     Tracks.findOne({ name: req.body.name }).then(user => {
         if (user) {
             return res.status(409).json({ name: 'Track already exists' })
         } else {
-            const newUser = new Tracks(req.body)
-            newUser
+            const newTrack = new Tracks(req.body)
+            newTrack
                 .save()
                 .then(track => {
-                    return res.status(200).json({
+                    return res.status(201).json({
                         message: 'Track successfully created',
                         track,
                     })
