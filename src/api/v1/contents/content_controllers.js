@@ -17,7 +17,7 @@ export async function createContent(req, res, next) {
         if (!isdateValid) {
             return next(new CustomError(422, 'Invalid date entered, Deadline must be after current Date'))
         }
-        const user = await User.findOne({ _id: userId, userType: 'mentor' })
+        const user = await User.findOne({ _id: userId, $or: [{ userType: 'mentor' }, { userType: 'admin' }] })
         if (!user) return next(new CustomError(401, 'Not authorized'))
         const payload = {
             category,
