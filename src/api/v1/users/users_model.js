@@ -17,17 +17,14 @@ const UserSchema = new Schema({
     },
     isVerified: {
         type: Boolean,
-        default: false,
+        default: true,
     },
     teamNumber: String,
     userType: {
         type: String,
-        enum: ['user', 'admin', 'mentor', 'mentee'],
-        default: 'user',
     },
     stack: {
         type: String,
-        enum: ['frontend', 'backend', 'fullstack', 'mobile'],
         required: true,
     },
     date: {

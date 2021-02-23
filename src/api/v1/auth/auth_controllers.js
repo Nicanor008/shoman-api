@@ -22,7 +22,7 @@ export const RegisterUser = (req, res) => {
                 Username: req.body.Username,
                 email: req.body.email,
                 password: req.body.password,
-                userType: req.body.role,
+                userType: req.body.userType,
                 stack: req.body.track,
             })
             bcrypt.genSalt(10, (err, salt) => {
