@@ -11,8 +11,6 @@ import errorHandler from './utils/errorHandler'
 const app = express()
 const DB = require('./config/keys').mongoUri
 
-console.log('>>>>>>>>>>>>>>>>>>..........', process.env)
-
 app.use(cors())
 
 app.use(
@@ -21,6 +19,7 @@ app.use(
     }),
 )
 
+app.use(bodyParser.json({ limit: '70mb' }))
 app.use(bodyParser.json())
 
 app.use(morgan('dev'))
