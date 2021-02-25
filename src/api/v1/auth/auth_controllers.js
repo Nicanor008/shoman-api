@@ -108,7 +108,11 @@ export const GetAllUsers = (req, res, next) => {
         }
         res.status(200).json({
             message: 'All users retrived successfully',
-            user,
+            total: user.length,
+            admin: user.filter(u => u.userType === 'admin').length,
+            mentors: user.filter(u => u.userType === 'mentor').length,
+            mentees: user.filter(u => u.userType === 'mentee').length,
+            users: user,
         })
     })
 }
