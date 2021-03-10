@@ -135,19 +135,34 @@ export async function CurrentUserTeam(req, res, next) {
             { $unwind: '$mentor' },
             { $unwind: '$track' },
         ])
-        const team = allUsers.filter(team => team.mentor._id.toString() === req.userData.id || team.menteesId.filter(user => user.toString() === req.userData.id))
-        if (!team || team.length === 0) {
-            return next(new CustomError(404, 'You not assigned to a team. Contact Admin'))
-        }
-        if (team[0].menteesId.length > 0) {
-            const mentees = []
-            for (let i = 0; i < team[0].menteesId.length; i++) {
-                mentees.push(await User.findById(team[0].menteesId[i]))
+        // const team = allUsers.filter(team => team.mentorId.toString() === req.userData.id || team.menteesId.filter(m => m.toString() === req.userData.id))
+        const te = allUsers.filter(t => {
+            const iin = t.menteesId.filter(m => m.toString() === req.userData.id)
+            // mentees.push(await User.findById(team[0].menteesId[i]))
+            // t.menteesId.filter(m => m.toString() === req.userData.id)
+            if (iin.length > 0 || t.mentorId.toString() === req.userData.id) {
+                // t.menteesId.map(tr => mentees.push(User.findById(tr)))
+                return t
             }
-            return res.status(200).json({ status: 'success', message: 'Current User Details', data: team[0], mentees })
+        })
+        // allUsers.map(t => t.menteesId.filter(m => m === eval(req.userData.id)) console.log(typeof req.userData.id, ">>>>>>>>>>>>>>..............", typeof t.menteesId[0].toString()))
+
+        console.log('>>>>>>>>>>>>>>>>>>>>.......................................', te[0])
+        if (!te || !te[0] || te[0].length === 0) {
+            return next(new CustomError(404, 'You not assigned to a team. Contact Admin'))
         } else {
-            return responseHandler(res, 200, team[0], 'Current User Details')
+            const mentees = []
+            for (let i = 0; i < te[0].menteesId.length; i++) {
+                mentees.push(await User.findById(te[0].menteesId[i]))
+            }
+            return res.status(200).json({ status: 'success', message: 'Current User Details', data: te[0], mentees })
         }
+        // if (team[0].menteesId.length > 0) {
+        // const mentees = []
+
+        // } else {
+        //     return responseHandler(res, 200, team[0], 'Current User Details')
+        // }
         // team[0].menteesId(mentees => console.log("<>>>>>>>>>....>>>>>>>..>>>..>.>..>......>......", mentees))
     } catch (error) {
         next(new InternalServerError(error))
